@@ -7,6 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import ClientRegisterSerializer, ArtisanRegisterSerializer
 from .models import OTPVerification, User
 from .tasks import send_otp_email
+from .permissions import IsArtisan, IsClient
 
 # Create your views here.
 #
@@ -89,3 +90,10 @@ class OTPVerificationView(APIView):
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+# Artisan's Onboarding Views
+class ArtisanOnboardingView(APIView):
+    permission_classes = [IsArtisan]
+
+    

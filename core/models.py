@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
+from accounts.models import ClientProfile, ArtisanProfile
+
 
 # Create your models here.
 class UserManager(BaseUserManager):
@@ -44,8 +46,33 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+    @property
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}".strip()
 
     def get_short_name(self):
         return self.first_name
+
+
+class Review(models.Model):
+    client = models.ForeignKey(ClientProfile, on_delete=models.CASCADE)
+    artisan = models.ForeignKey(ArtisanProfile, related_name='artisan_reviews', on_delete=models.CASCADE)
+    rating = models.PositiveIntegerField()
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Review by {self.client.get_full_name()} for {self.artisan.get_full_name()}"
+
+
+class Service(models.Model):
+    artisan = models.ForeignKey(ArtisanProfile, on_delete=models.CASCADE)
+    iamge = models.ImageField(upload_to='services/')
+    job_title = models.CharField(max_length=100)
+    description = models.TextField()
+    tags = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.job_title} by {self.artisan.get_full_name()}"
