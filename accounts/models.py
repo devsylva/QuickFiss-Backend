@@ -1,6 +1,8 @@
 from django.db import models
-from core.models import User
+from django.contrib.auth import get_user_model
 import random
+
+User = get_user_model()
 
 # Create your models here.
 class ClientProfile(models.Model):
@@ -11,11 +13,9 @@ class ClientProfile(models.Model):
     state = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.full_name
+        return self.user.email
 
-    @property
-    def full_name(self):
-        return f"{self.user.get_full_name()}".strip()
+    
 
 
 class ArtisanProfile(models.Model):
@@ -56,11 +56,8 @@ class ArtisanProfile(models.Model):
     certification = models.FileField(upload_to='certifications/', blank=True, null=True)
 
     def __str__(self):
-        return self.full_name
+        return self.user.email
 
-    @property
-    def full_name(self):
-        return f"{self.user.get_full_name()}".strip()
 
 
 class OTPVerification(models.Model):

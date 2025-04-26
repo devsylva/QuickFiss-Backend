@@ -1,16 +1,19 @@
 from django.shortcuts import render
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import  APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import ClientRegisterSerializer, ArtisanRegisterSerializer
-from .models import OTPVerification, User
+from .models import OTPVerification, ClientProfile, ArtisanProfile
 from .tasks import send_otp_email
 from .permissions import IsArtisan, IsClient
 
+User = get_user_model()
+
 # Create your views here.
-#
+
 class LogOutView(APIView):
     permission_class = [IsAuthenticated,]
 
@@ -92,8 +95,31 @@ class OTPVerificationView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-# Artisan's Onboarding Views
+# Client Onboarding Vies
+class ClientOnboardingView(APIView):
+    permission_classes = [IsClient,]
+
+    def post(self, request):
+        user = request.user
+        client = ClientProfile.objects.get(user=user)
+
+        user.first_name = request.data['first_name']
+        user.last_name = request.data['last_name']
+        user.save()
+
+        if "profile_picture" in request.data:
+            client.profile_picture = request.data['profile_picture']
+            client.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+
 class ArtisanOnboardingView(APIView):
     permission_classes = [IsArtisan]
+
+    def post(self, request):
+        pass
+
+        
 
     

@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
-from accounts.models import ClientProfile, ArtisanProfile
-
 
 # Create your models here.
 class UserManager(BaseUserManager):
@@ -55,8 +53,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Review(models.Model):
-    client = models.ForeignKey(ClientProfile, on_delete=models.CASCADE)
-    artisan = models.ForeignKey(ArtisanProfile, related_name='artisan_reviews', on_delete=models.CASCADE)
+    client = models.ForeignKey('accounts.ClientProfile', on_delete=models.CASCADE)
+    artisan = models.ForeignKey('accounts.ArtisanProfile', related_name='artisan_reviews', on_delete=models.CASCADE)
     rating = models.PositiveIntegerField()
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -66,8 +64,8 @@ class Review(models.Model):
 
 
 class Service(models.Model):
-    artisan = models.ForeignKey(ArtisanProfile, on_delete=models.CASCADE)
-    iamge = models.ImageField(upload_to='services/')
+    artisan = models.ForeignKey('accounts.ArtisanProfile', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='services/')  # Fixed typo: iamge -> image
     job_title = models.CharField(max_length=100)
     description = models.TextField()
     tags = models.CharField(max_length=100)
