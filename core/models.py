@@ -52,6 +52,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.first_name
 
 
+class Service(models.Model):
+    name = models.CharField(max_length=100)
+    category = models.ForeignKey('Category', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+        
+
 class Review(models.Model):
     client = models.ForeignKey('accounts.ClientProfile', on_delete=models.CASCADE)
     artisan = models.ForeignKey('accounts.ArtisanProfile', related_name='artisan_reviews', on_delete=models.CASCADE)
@@ -63,14 +72,53 @@ class Review(models.Model):
         return f"Review by {self.client.get_full_name()} for {self.artisan.get_full_name()}"
 
 
-class Service(models.Model):
+class Post(models.Model):
     artisan = models.ForeignKey('accounts.ArtisanProfile', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='services/')  # Fixed typo: iamge -> image
     job_title = models.CharField(max_length=100)
     description = models.TextField()
+    category = models.ForeignKey('Category', on_delete=models.CASCADE, null=True)
     tags = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.job_title} by {self.artisan.get_full_name()}"
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Category(models.Model):
+    CATEGORY = (
+        ("Automotive", "Automotive"),
+        ("Cleaning and Waste", "Cleaning and Waste"),
+        ("Food and Catering", "Food and Catering"),
+        ("Home Services", "Home Services"),
+        ("Logistics", "Logistics"),
+        ("Personal Care", "Personal Care"),
+        ("Tech and Electronics", "Tech and Electronics")
+    )
+    name = models.CharField(max_length=100, choices=CATEGORY, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = 'Categories'
+        ordering = ['name']
+
+
+class UserInteraction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    liked = models.BooleanField(default=False)
+    viewed = models.BooleanField(default=False)
+    interaction_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'post')

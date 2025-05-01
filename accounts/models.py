@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from core.models import Category, Tag
 import random
 
 User = get_user_model()
@@ -9,13 +10,13 @@ class ClientProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
-    country = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
+    # country = models.CharField(max_length=100)
+    # state = models.CharField(max_length=100)
+    preferred_categories = models.ManyToManyField(Category, blank=True)
+    followed_tags = models.ManyToManyField(Tag, blank=True)
 
     def __str__(self):
         return self.user.email
-
-    
 
 
 class ArtisanProfile(models.Model):
@@ -42,7 +43,7 @@ class ArtisanProfile(models.Model):
     service_years = models.CharField(max_length=100)
     
     date_of_birth = models.DateField(blank=True, null=True)
-    country = models.CharField(max_length=100)
+    # country = models.CharField(max_length=100)
     gender = models.CharField(max_length=10, choices=GENDER)
     
     address = models.CharField(max_length=100)
@@ -50,6 +51,7 @@ class ArtisanProfile(models.Model):
     profession = models.CharField(max_length=100)
     experience = models.CharField(max_length=100)
     about = models.TextField()
+    
 
     # images
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
@@ -68,6 +70,8 @@ class OTPVerification(models.Model):
 
 
     def generate_otp(self):
-        self.otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        self.otp = ''.join([str(random.randint(0, 9)) for _ in range(4)])
         self.save()
         return self.otp
+
+
