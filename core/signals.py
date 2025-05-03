@@ -15,6 +15,9 @@ def create_or_update_profile(sender, instance, created, **kwargs):
             ArtisanProfile.objects.create(user=instance)
     # Handle updates
     else:
+        # this is for future purposes, incase you want to change how the profile is handled when both the
+        # client and artisan are created. write another if block to handle deleting both profiles or 
+        # updating them i:e adding them etc:::
         if instance.is_client:
             # Ensure ClientProfile exists, create if it doesn't
             ClientProfile.objects.get_or_create(user=instance)

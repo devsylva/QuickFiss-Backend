@@ -8,10 +8,10 @@ User = get_user_model()
 # Create your models here.
 class ClientProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
-    # country = models.CharField(max_length=100)
-    # state = models.CharField(max_length=100)
     preferred_categories = models.ManyToManyField(Category, blank=True)
     followed_tags = models.ManyToManyField(Tag, blank=True)
 
@@ -36,6 +36,8 @@ class ArtisanProfile(models.Model):
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
     business_name = models.CharField(max_length=100)
     business_about = models.TextField()
     bio = models.TextField()
@@ -51,11 +53,11 @@ class ArtisanProfile(models.Model):
     profession = models.CharField(max_length=100)
     experience = models.CharField(max_length=100)
     about = models.TextField()
-    
 
-    # images
+    # files
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     certification = models.FileField(upload_to='certifications/', blank=True, null=True)
+    proof_of_address = models.FileField(upload_to='proof_of_address/', blank=True, null=True)
 
     def __str__(self):
         return self.user.email

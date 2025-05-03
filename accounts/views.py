@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import  APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserRegistrationSerializer
+from .serializers import UserRegistrationSerializer, ClientProfileSerializer, ArtisanKYCSerializer
 from .models import OTPVerification, ClientProfile, ArtisanProfile
 from .tasks import send_otp_email
 from .permissions import IsArtisan, IsClient
@@ -76,45 +76,34 @@ class OTPVerificationView(APIView):
 class ClientOnboardingView(APIView):
     permission_classes = [IsClient,]
 
-    def post(self, request):
-        user = request.user
-        user.is_client = True
-        user.save()
-        client = ClientProfile.objects.get(user=user)
-
-        user.first_name = request.data['first_name']
-        user.last_name = request.data['last_name']
-        user.save()
-
-        client.profile_picture = request.data['profile_picture']
-        client.save()
-
-        return Response(status=status.HTTP_200_OK)
+    def put(self, request):
+        try:
+            profile = ClientProfile.objects.get(user=request.user)
+            serializer = ClientProfileSerializer(profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ClientProfile.DoesNotExist:
+            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-class ArtisanOnboardingView(APIView):
-    permission_classes = [IsArtisan]
+class ArtisanKYCView(APIView):
+    permission_classes = [IsArtisan,]
 
-    def post(self, request):
-        user = request.user
-        user.is_artisan = True
-        user.save()
+    def put(self, request):
+        try:
+            profile = ArtisanProfile.objects.get(user=request.user)
+            serializer = ArtisanKYCSerializer(profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ArtisanProfile.DoesNotExist:
+            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        artisan = ArtisanProfile.objects.get(user=user)
 
-        user.first_name = request.data['first_name']
-        user.last_name = request.data['last_name']
-        artisan.profile_picture = request.data['profile_picture']
-        artisan.gender = request.data['gender']
+class ArtisanCustomizationView(APIView):
+    permission_classes = [IsArtisan,]
 
-        complete_address = request.data['complete_address']
-        proof_of_address = request.data['proof_of_address']
-        landmark = request.data['landmark']
-
-        govtid = request.data['govtid']
-        idfront = request.data['idfront']
-        idback = request.data['idback']
-
-        
-
-    
+    pass
