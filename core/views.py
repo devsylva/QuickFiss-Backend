@@ -5,7 +5,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from accounts.permissions import IsArtisan, IsClient
 from accounts.models import ClientProfile, ArtisanProfile
-from core.models import Post
+from core.models import Post, Category, Service
+from .serializers import CategorySerializer, ServiceSerializer
 
 # Create your views here.
 class ClientPersonalizedFeed(APIView):
@@ -38,3 +39,50 @@ class ClientPersonalizedFeed(APIView):
         )[:20]
 
         return Response(posts, status=status.HTTP_200_OK)
+
+
+class CategoryListView(APIView):
+    permission = [IsAuthenticated,]
+
+    def get(self, request):
+        try:
+            categories = Category.objects.all()
+            serializer = CategorySerializer(categories, many=True)
+            return Response({
+                "mesage": "Categories retrieved successfully",
+                "data": serializer.data
+                }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                "error": f"failed to retrieve categories {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ServiceListView(APIView):
+    permission = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+
+            category = request.query_params.get('category', None)
+            services = Service.objects.all()
+
+            if category:
+                if not Category.objects.filter(name=category).exits():
+                    return Response({
+                        "error": f"category '{category}' does not exist"
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                services  = Service.objects.filter(category=category)
+
+
+            serializer = ServiceSerializer(services, many=True)
+            return Response({
+                "message": "Services retrieved successfully",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {"error": f"failed to retrieve services {str(e)}"
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

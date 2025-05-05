@@ -58,7 +58,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ClientProfileSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False)
     preferred_categories = serializers.ListField(
@@ -76,7 +75,11 @@ class ClientProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClientProfile
-        fields = ['user', 'first_name', 'last_name', 'profile_picture', 'date_of_birth', 'preferred_categories', 'preferred_categories_data']
+        fields = [
+            'first_name', 'last_name', 
+            'profile_picture', 'date_of_birth', 
+            'preferred_categories', 'preferred_categories_data'
+            ]
 
     def validate_preferred_categories(self, value):
         if isinstance(value, list) and len(value) == 1 and isinstance(value[0], str):
@@ -128,7 +131,6 @@ class ClientProfileSerializer(serializers.ModelSerializer):
 
 
 class ArtisanKYCSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False)
     profile_picture = serializers.ImageField(required=False)
@@ -141,7 +143,9 @@ class ArtisanKYCSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArtisanProfile
         fields = [
-            'user', 'first_name', 'last_name', 'profile_picture', 'date_of_birth', 'gender', 'address', 'proof_of_address', 'landmark'
+            'first_name', 'last_name', 
+            'profile_picture', 'date_of_birth', 
+            'gender', 'address', 'proof_of_address', 'landmark'
         ]
 
     def update(self, instance, validated_data):

@@ -39,7 +39,7 @@ class UserRegistrationView(APIView):
             # generate OTP
             otp = OTPVerification.objects.create(user=user).generate_otp()
             # send OTP verification Email Asynchronously
-            send_otp_email(user.email, otp)
+            send_otp_email.delay(user.email, otp)
 
             refresh = RefreshToken.for_user(user)
             return Response({
@@ -49,6 +49,34 @@ class UserRegistrationView(APIView):
                 "access": str(refresh.access_token),
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResendOTPView(APIView):
+    permission_classes = [AllowAny,]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+            if user.is_active:  
+                return Response({"error": "Email is already verified"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check for existing OTP record and update it, or create a new one
+            otp_record, created = OTPVerification.objects.get_or_create(user=user)
+            otp = otp_record.generate_otp()  # Generate new OTP and update the record
+
+            # Send OTP email asynchronously
+            send_otp_email.delay(user.email, otp)
+
+            return Response({
+                "message": "OTP resent successfully, please check your email"
+            }, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class OTPVerificationView(APIView):
