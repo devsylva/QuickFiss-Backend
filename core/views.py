@@ -69,11 +69,11 @@ class ServiceListView(APIView):
             services = Service.objects.all()
 
             if category:
-                if not Category.objects.filter(name=category).exits():
+                if not Category.objects.filter(name=category).exists():
                     return Response({
                         "error": f"category '{category}' does not exist"
                     }, status=status.HTTP_400_BAD_REQUEST)
-                services  = Service.objects.filter(category=category)
+                services  = Service.objects.filter(category__name=category)
 
 
             serializer = ServiceSerializer(services, many=True)

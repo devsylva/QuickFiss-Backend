@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from core.models import Category
+from core.serializers import ServiceSerializer
 from .models import ClientProfile, ArtisanProfile
 import re
 from django.core.exceptions import ValidationError
@@ -163,4 +164,30 @@ class ArtisanKYCSerializer(serializers.ModelSerializer):
 
 
 class ArtisanCutomizationSerializer(serializers.ModelSerializer):
-    pass
+    services = serializers.ListField(
+        child=serializers.CharField(),
+        write_only=True,
+        required=False
+    )
+    service_data = ServiceSerializer(
+        source='services',
+        many=True,
+        read_only=True
+    )
+    business_name = serializers.CharField(required=False)
+    bio = serializers.CharField(required=False)
+    service_years = serializers.CharField(required=False)
+    certification = serializers.FileField(required=False)
+    language = serializers.ChoiceField(choices=["English", "Pidgin", "French", "Yoruba", "Hausa", "Igbo", "Others"], required=False)
+    business_about = serializers.CharField(required=False)
+    profession = serializers.CharField(required=False)
+    experience = serializers.CharField(required=False)
+
+    class Meta:
+        model = ArtisanProfile
+        fields = [
+            'first_name', 'last_name', 
+            'business_name', 'bio', 
+            'service_years', 'language', 
+            'profession', 'experience'
+        ]  

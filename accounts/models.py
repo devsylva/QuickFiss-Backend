@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from core.models import Category, Tag
+from core.models import Category, Tag, Service
 import random
 
 User = get_user_model()
@@ -22,7 +22,7 @@ class ClientProfile(models.Model):
 class ArtisanProfile(models.Model):
     GENDER = (
         ("M", "Male"),
-        ("F", "Femaile"),
+        ("F", "Female"),
     )
 
     LANGUAGE = (
@@ -35,6 +35,12 @@ class ArtisanProfile(models.Model):
         ("Others", "Others"),
     )
 
+    # AVAILABILITY_CHOICES = (
+    #     ("MORNING", "Morning"),
+    #     ("AFTERNOON", "Afternoon"),
+    #     ("NIGHT", "Night"),
+    # )
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=30, blank=True)
@@ -42,13 +48,18 @@ class ArtisanProfile(models.Model):
     business_about = models.TextField()
     bio = models.TextField()
     language = models.CharField(max_length=100, choices=LANGUAGE)
+    service = models.ManyToManyField(Service, blank=True)
     service_years = models.CharField(max_length=100)
+
+    # Price range fields (min and max for slider)
+    min_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    max_price = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
     
     date_of_birth = models.DateField(blank=True, null=True)
-    # country = models.CharField(max_length=100)
+    availability = models.ManyToManyField("AvailabilityOption")
     gender = models.CharField(max_length=10, choices=GENDER)
     
-    address = models.CharField(max_length=100)
+    location = models.CharField(max_length=100, blank=True)
     landmark = models.CharField(max_length=100)
     profession = models.CharField(max_length=100)
     experience = models.CharField(max_length=100)
@@ -61,7 +72,6 @@ class ArtisanProfile(models.Model):
 
     def __str__(self):
         return self.user.email
-
 
 
 class OTPVerification(models.Model):
@@ -77,3 +87,14 @@ class OTPVerification(models.Model):
         return self.otp
 
 
+class AvailabilityOption(models.Model):
+    name = models.CharField(
+        max_length=10,
+        choices=[
+            ('MORNING', 'Morning'),
+            ('AFTERNOON', 'Afternoon'),
+            ('NIGHT', 'Night'),
+        ]
+    )
+    def __str__(self):
+        return self.get_name_display()
