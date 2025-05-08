@@ -15,4 +15,5 @@ urlpatterns = [
     # onboarding
     path('client/onboarding/', views.ClientOnboardingView.as_view(), name='client_onboarding'),
     path('artisan/kyc/', views.ArtisanKYCView.as_view(), name='artiisan_onboarding'),
+    path('artisan/customization/', views.ArtisanCustomizationView.as_view(), name='artisan_customization'),
 ]

@@ -5,7 +5,12 @@ from rest_framework.response import Response
 from rest_framework.views import  APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserRegistrationSerializer, ClientProfileSerializer, ArtisanKYCSerializer
+from .serializers import (
+    UserRegistrationSerializer, 
+    ClientProfileSerializer, 
+    ArtisanKYCSerializer,
+    ArtisanCutomizationSerializer
+)
 from .models import OTPVerification, ClientProfile, ArtisanProfile
 from .tasks import send_otp_email
 from .permissions import IsArtisan, IsClient
@@ -134,4 +139,13 @@ class ArtisanKYCView(APIView):
 class ArtisanCustomizationView(APIView):
     permission_classes = [IsArtisan,]
 
-    pass
+    def put(self, request):
+        try:
+            profile = ArtisanProfile.objects.get(user=request.user)
+            serializer = ArtisanCutomizationSerializer(profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ArtisanProfile.DoesNotExist:
+            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)

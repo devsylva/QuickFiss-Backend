@@ -35,21 +35,29 @@ class ArtisanProfile(models.Model):
         ("Others", "Others"),
     )
 
-    # AVAILABILITY_CHOICES = (
-    #     ("MORNING", "Morning"),
-    #     ("AFTERNOON", "Afternoon"),
-    #     ("NIGHT", "Night"),
-    # )
+    SERVICE_YEARS = (
+        ("1", "1 year"),
+        ("2", "2 years"),
+        ("3", "3 years"),
+        ("4", "4 years"),
+        ("5", "5 years"),
+        ("6", "6 years"),
+        ("7", "7 years"),
+        ("8", "8 years"),
+        ("9", "9 years"),
+        ("10", "10 years +"),
+    )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=30, blank=True)
+    address = models.CharField(max_length=100)
     business_name = models.CharField(max_length=100)
     business_about = models.TextField()
     bio = models.TextField()
     language = models.CharField(max_length=100, choices=LANGUAGE)
     service = models.ManyToManyField(Service, blank=True)
-    service_years = models.CharField(max_length=100)
+    experience = models.CharField(max_length=100, choices=SERVICE_YEARS)
 
     # Price range fields (min and max for slider)
     min_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -60,10 +68,8 @@ class ArtisanProfile(models.Model):
     gender = models.CharField(max_length=10, choices=GENDER)
     
     location = models.CharField(max_length=100, blank=True)
+    address = models.CharField(max_length=100, blank=True)
     landmark = models.CharField(max_length=100)
-    profession = models.CharField(max_length=100)
-    experience = models.CharField(max_length=100)
-    about = models.TextField()
 
     # files
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
@@ -94,7 +100,8 @@ class AvailabilityOption(models.Model):
             ('MORNING', 'Morning'),
             ('AFTERNOON', 'Afternoon'),
             ('NIGHT', 'Night'),
-        ]
+        ],
+        unique=True
     )
     def __str__(self):
         return self.get_name_display()

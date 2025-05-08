@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from core.models import Category
+from core.models import Category, Service
 from core.serializers import ServiceSerializer
-from .models import ClientProfile, ArtisanProfile
+from .models import ClientProfile, ArtisanProfile, AvailabilityOption
 import re
 from django.core.exceptions import ValidationError
 import json
@@ -50,6 +50,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         )
         return user
 
+
+class AvailabilityOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AvailabilityOption
+        fields = ["name"]
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -174,20 +179,109 @@ class ArtisanCutomizationSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
+    availability = serializers.ListField(
+        child=serializers.CharField(),
+        write_only=True,
+        required=False
+    )
+    availability_data = AvailabilityOptionSerializer(
+        source='availability',
+        many=True,
+        read_only=True
+    )
     business_name = serializers.CharField(required=False)
     bio = serializers.CharField(required=False)
-    service_years = serializers.CharField(required=False)
+    experience = serializers.CharField(required=False)
     certification = serializers.FileField(required=False)
     language = serializers.ChoiceField(choices=["English", "Pidgin", "French", "Yoruba", "Hausa", "Igbo", "Others"], required=False)
     business_about = serializers.CharField(required=False)
-    profession = serializers.CharField(required=False)
-    experience = serializers.CharField(required=False)
+    experience = serializers.ChoiceField(choices=[
+        "1", "2", "3", "4", "5"
+        "6", "7", "8", "9", "10"
+    ],required=False)
+    location = serializers.CharField(required=False)
+    min_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    max_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
 
     class Meta:
         model = ArtisanProfile
         fields = [
-            'first_name', 'last_name', 
             'business_name', 'bio', 
-            'service_years', 'language', 
-            'profession', 'experience'
+            'experience', 'language', 
+            'availability', 'availability_data', 'location', 'experience',
+            'business_about', 'services', 'service_data',
+            'min_price', 'max_price', 'certification',
         ]  
+
+    def validate_services(self, value):
+        if isinstance(value, list) and len(value) == 1 and isinstance(value[0], str):
+            try:
+                parsed_value = json.loads(value[0])
+                if isinstance(parsed_value, list):
+                    value = parsed_value
+            except json.JSONDecodeError:
+                pass
+
+        if not isinstance(value, list):
+            raise serializers.ValidationError("service must be a list of service names")
+
+        if value:
+            valid_service_names = set(Service.objects.values_list('name', flat=True))
+            invalid_services = [name for name in value if name not in valid_service_names]
+            if invalid_services:
+                raise serializers.ValidationError(
+                    f"The following service names are invalid: {', '.join(invalid_services)}"
+                )
+
+        return value
+
+    def validate_availability(self, value):
+        if isinstance(value, list) and len(value) == 1 and isinstance(value[0], str):
+            try:
+                parsed_value = json.loads(value[0])
+                if isinstance(parsed_value, list):
+                    value = parsed_value
+            except json.JSONDecodeError:
+                pass
+
+        if not isinstance(value, list):
+            raise serializers.ValidationError("availability must be a list of availability names")
+
+        if value:
+            valid_availability_options = set(AvailabilityOption.objects.values_list('name', flat=True))
+            invalid_availability = [name for name in value if name not in valid_availability_options]
+            if invalid_availability:
+                raise serializers.ValidationError(
+                    f"The following availability options are invalid: {', '.join(invalid_availability)}"
+                )
+
+        return value
+
+    def update(self, instance, validated_data):
+        services_data = validated_data.pop('services', None)
+        availability_option_data = validated_data.pop('availability', None)
+        
+        instance.business_name = validated_data.get('business_name', instance.first_name)
+        instance.bio = validated_data.get('bio', instance.bio)
+        instance.certification = validated_data.get('certification', instance.certification)
+        instance.experience = validated_data.get('experience', instance.experience)
+        instance.business_about = validated_data.get('business_about', instance.business_about)
+        instance.language = validated_data.get('language', instance.language)
+        instance.location = validated_data.get('location', instance.location)
+        instance.min_price = validated_data.get('min_price', instance.min_price)
+        instance.max_price = validated_data.get('max_price', instance.max_price)
+        instance.save()
+
+        if services_data is not None:
+            instance.service.clear()
+            for service_name in services_data:
+                service, _ = Service.objects.get_or_create(name=service_name)
+                instance.service.add(service)
+
+        if availability_option_data is not None:
+            instance.availability.clear()
+            for availability_name in availability_option_data:
+                availability_option, _ = AvailabilityOption.objects.get_or_create(name=availability_name)
+                instance.availability.add(availability_option)
+
+        return instance
