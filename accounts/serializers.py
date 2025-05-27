@@ -285,3 +285,5 @@ class ArtisanCutomizationSerializer(serializers.ModelSerializer):
                 instance.availability.add(availability_option)
 
         return instance
+
+

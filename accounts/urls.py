@@ -11,6 +11,9 @@ urlpatterns = [
     path('register/', views.UserRegistrationView.as_view(), name='user_register'),
     path('resend-otp/', views.ResendOTPView.as_view(), name='otp_resend'),
     path("verify-otp/", views.OTPVerificationView.as_view(), name="otp_verify"),
+    path("request-password-reset/", views.PasswordResetRequestView.as_view(), name="reset_password"),
+    path("password-reset/", views.PasswordResetConfirmView.as_view(), name="change_password"),
+    path("change-password/", views.ChangePasswordView.as_view(), name="change_password"),
 
     # onboarding
     path('client/onboarding/', views.ClientOnboardingView.as_view(), name='client_onboarding'),

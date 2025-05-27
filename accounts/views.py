@@ -105,6 +105,107 @@ class OTPVerificationView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny,]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+            # Check for existing OTP record and update it, or create a new one
+            otp_record, created = OTPVerification.objects.get_or_create(user=user)
+            otp = otp_record.generate_otp()
+
+            # Send OTP email asynchronously
+            send_otp_email.delay(user.email, otp)
+
+            return Response({
+                "message": "Password reset OTP sent successfully, please check your email"
+            }, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny,]
+
+    def post(self, request):
+        email = request.data.get('email')
+        otp = request.data.get('otp')
+        password = request.data.get('password')
+        confirm_password = request.data.get('confirm_password')
+
+        # Validate required fields
+        if not all([email, otp, password, confirm_password]):
+            return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if passwords match
+        if password != confirm_password:
+            return Response({"error": "Passwords do not match"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+            otp_verification = OTPVerification.objects.get(user=user)
+
+            # Check OTP validity
+            if otp_verification.otp != otp:
+                return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check OTP expiration (10 minutes)
+            if datetime.now(otp_verification.created_at.tzinfo) > otp_verification.created_at + timedelta(minutes=10):
+                return Response({"error": "OTP has expired"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Update password
+            user.set_password(password)
+            user.save()
+
+            # Delete used OTP
+            otp_verification.delete()
+
+            return Response({
+                "message": "Password reset successfully"
+            }, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except OTPVerification.DoesNotExist:
+            return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated,]
+
+    def post(self, request):
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+
+        # Validate required fields
+        if not all([current_password, new_password, confirm_password]):
+            return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if new passwords match
+        if new_password != confirm_password:
+            return Response({"error": "New passwords do not match"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        # Verify current password
+        if not user.check_password(current_password):
+            return Response({"error": "Current password is incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update password
+        user.set_password(new_password)
+        user.save()
+
+        return Response({
+            "message": "Password changed successfully"
+        }, status=status.HTTP_200_OK)
+
+        
 # Client Onboarding Vies
 class ClientOnboardingView(APIView):
     permission_classes = [IsClient,]
@@ -149,3 +250,5 @@ class ArtisanCustomizationView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except ArtisanProfile.DoesNotExist:
             return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
