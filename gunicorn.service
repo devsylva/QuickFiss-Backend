@@ -1,0 +1,14 @@
+[Unit]
+Description=gunicorn daemon
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/home/project/django/djangoproject
+ExecStart=/home/project/django/django_venv/bin/gunicorn --workers 3 --bind unix:/home/project/django/djangoproject.sock quickfiss.wsgi:application
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
