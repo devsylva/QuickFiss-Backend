@@ -128,7 +128,7 @@ SIMPLE_JWT = {
 AUTH_USER_MODEL = 'core.User'
 
 
-ROOT_URLCONF = 'quickfiss_backend.urls'
+ROOT_URLCONF = 'quickfiss.urls'
 
 TEMPLATES = [
     {
@@ -146,7 +146,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'quickfiss_backend.wsgi.application'
+WSGI_APPLICATION = 'quickfiss.wsgi.application'
 
 
 # Database
