@@ -9,7 +9,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - movbay_network
+      - quickfiss_network
     command: >
       postgres -c 'max_connections=50'
       -c 'shared_buffers=256MB'

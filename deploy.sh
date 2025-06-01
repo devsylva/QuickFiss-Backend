@@ -113,13 +113,7 @@ echo "3. Update the email address in the SSL certificate command (your-email@exa
 echo "4. Set up regular backups for your database"
 echo "5. Configure firewalld if enabled (e.g., allow ports 80 and 443)"
 
-# Open firewall ports for HTTP/HTTPS (if firewalld is active)
-if systemctl is-active --quiet firewalld; then
-    print_status "Configuring firewalld to allow HTTP and HTTPS..."
-    sudo firewall-cmd --permanent --add-service=http
-    sudo firewall-cmd --permanent --add-service=https
-    sudo firewall-cmd --reload
-fi
+
 
 # Show running containers
 print_status "Currently running containers:"
