@@ -24,7 +24,7 @@ errorlog = "-"
 loglevel = "info"
 
 # Process naming
-proc_name = "quickfiss_backend_gunicorn"
+proc_name = "quickfiss_gunicorn"
 
 # Worker recycling
 preload_app = True

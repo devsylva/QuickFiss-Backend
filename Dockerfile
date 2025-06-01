@@ -1,33 +1,34 @@
 FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-# Set working directory to /app/movbay (where manage.py lives)
-WORKDIR /app/quickfiss_backend
+# Set work directory
+WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        postgresql-client \
         build-essential \
         libpq-dev \
+        postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy gunicorn config (in project root)
-COPY gunicorn_config.py /app/
+# Copy entire project into the container
+COPY . /app/
 
-# Copy movbay folder into /app/movbay
-COPY quickfiss_backend/ /app/quickfiss_backend/
-
-# Install Python dependencies (requirements.txt is inside movbay/)
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create static/media folders
-RUN mkdir -p /app/quickfiss_backend/staticfiles /app/quickfiss_backend/media
+# Create static/media folders (if not already present in repo)
+RUN mkdir -p /app/quickfiss/staticfiles /app/quickfiss/media
 
-# Collect static files
+# Gunicorn config (optional — if you have gunicorn_config.py)
+# Already copied by `COPY . /app/`, so no need to copy again
 
+# Collect static files (optional for production builds)
+# RUN python manage.py collectstatic --noinput
 
-# Run gunicorn
-CMD ["gunicorn", "--config", "/app/gunicorn_config.py", "quickfiss_backend.wsgi:application"]
+# Default command to run the application
+CMD ["gunicorn", "--config", "/app/gunicorn_config.py", "quickfiss.wsgi:application"]
