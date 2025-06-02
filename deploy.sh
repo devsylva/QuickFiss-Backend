@@ -92,7 +92,7 @@ docker compose exec -T web python manage.py collectstatic --noinput
 # Create superuser (non-interactive for automation)
 if [ ! -f .superuser_created ]; then
     print_status "Creating superuser..."
-    docker compose exec -T web python manage.py createsuperuser --noinput --username admin --email admin@quickfiss.com || true
+    docker compose exec -T web python manage.py createsuperuser --noinput --email admin@quickfiss.com || true
     touch .superuser_created
 fi
 
