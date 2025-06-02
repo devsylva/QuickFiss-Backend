@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 services:
   db:
     image: postgres:15-alpine
@@ -7,9 +7,9 @@ services:
     environment:
       POSTGRES_USER: quickfiss
       POSTGRES_PASSWORD: secure_password
-      POSTGRES_DB: quickfiss_database
+      POSTGRES_DB: quickfiss
     ports:
-      - "5433:5433"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -38,12 +38,13 @@ services:
     build: .
     container_name: quickfiss_web
     restart: unless-stopped
+    command: gunicorn --config gunicorn_config.py quickfiss.wsgi:application
     env_file:
       - .env
     volumes:
-      - ./quickfiss:/app/quickfiss
-      - static_volume:/app/quickfiss/staticfiles
-      - media_volume:/app/quickfiss/media
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
     depends_on:
       - db
       - redis
@@ -65,8 +66,8 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - static_volume:/var/www/html/static
-      - media_volume:/var/www/html/media
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
     depends_on:
       - web
     networks:
@@ -78,7 +79,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./quickfiss:/app/quickfiss
+      - .:/app
     depends_on:
       - redis
       - db
