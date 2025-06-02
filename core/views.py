@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from accounts.permissions import IsArtisan, IsClient
@@ -9,6 +9,13 @@ from core.models import Post, Category, Service
 from .serializers import CategorySerializer, ServiceSerializer
 
 # Create your views here.
+class HelloWorldView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({"message": "Hello, World!"}, status=status.HTTP_200_OK)
+
+
 class ClientPersonalizedFeed(APIView):
     permission_classes = [IsAuthenticated]
 
