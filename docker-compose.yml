@@ -68,7 +68,7 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /etc/letsencrypt:/etc/letsencrypt
     depends_on:
       - web
     networks:
