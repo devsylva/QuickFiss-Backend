@@ -38,8 +38,9 @@ services:
     container_name: quickfiss_web
     restart: unless-stopped
     command: gunicorn --config gunicorn_config.py quickfiss.wsgi:application
-    env_file:
-      - .env
+    environment:
+      - e=${e:-}
+      - i=${i:-}
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -75,8 +76,9 @@ services:
     build: .
     container_name: quickfiss_celery
     command: celery -A quickfiss worker --loglevel=info
-    env_file:
-      - .env
+    environment:
+      - e=${e:-}
+      - i=${i:-}
     volumes:
       - .:/app
     depends_on:
